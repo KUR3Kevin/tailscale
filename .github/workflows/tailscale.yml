@@ -1,0 +1,32 @@
+name: Tailscale Exit Node
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TS_AUTH }}
+
+      - name: Check exit node status
+        run: |
+          echo "=== Tailscale Status ==="
+          tailscale status
+          echo "=== Checking marsels-mac-mini ==="
+          tailscale status --json | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          for k, v in data.get('Peer', {}).items():
+              if 'marsels-mac-mini' in v.get('HostName', ''):
+                  print('Host:', v['HostName'])
+                  print('Online:', v.get('Online', False))
+                  sys.exit(0 if v.get('Online') else 1)
+          print('marsels-mac-mini not found')
+          sys.exit(1)
+          "
