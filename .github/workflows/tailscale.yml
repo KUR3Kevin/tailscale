@@ -22,11 +22,15 @@ jobs:
           tailscale status --json | python3 -c "
           import sys, json
           data = json.load(sys.stdin)
+          target = 'marsels-mac-mini'
           for k, v in data.get('Peer', {}).items():
-              if 'marsels-mac-mini' in v.get('HostName', ''):
-                  print('Host:', v['HostName'])
-                  print('Online:', v.get('Online', False))
-                  sys.exit(0 if v.get('Online') else 1)
-          print('marsels-mac-mini not found')
+              hostname = v.get('HostName', '').lower()
+              dnsname = v.get('DNSName', '').lower()
+              if target in hostname or target in dnsname:
+                  print('Host:', v.get('HostName', ''))
+                  online = v.get('Online', False)
+                  print('Online:', online)
+                  sys.exit(0 if online else 1)
+          print(target + ' not found')
           sys.exit(1)
           "
