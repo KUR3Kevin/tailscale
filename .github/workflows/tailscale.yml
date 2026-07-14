@@ -5,12 +5,16 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   connect:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+        uses: tailscale/github-action@v4
         with:
           authkey: ${{ secrets.TS_AUTH }}
 
